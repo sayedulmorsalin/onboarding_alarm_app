@@ -172,7 +172,7 @@ class _LocationScreenState extends State<LocationScreen> {
                     textAlign: TextAlign.center,
                     style: const TextStyle(
                       color: Color(0xFFCDD0EC),
-                      fontSize: 13,
+                      fontSize: 20,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
