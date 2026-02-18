@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:onboarding_alarm_app/common_widgets/primary_button.dart';
 import 'package:onboarding_alarm_app/constants/app_colors.dart';
 import 'package:onboarding_alarm_app/constants/app_strings.dart';
 import 'package:onboarding_alarm_app/features/alarm/alarm_model.dart';
@@ -71,6 +70,7 @@ class AlarmScreen extends StatefulWidget {
 class _AlarmScreenState extends State<AlarmScreen> {
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
+  final Set<int> _disabledAlarmIds = <int>{};
 
   Future<void> _pickDate() async {
     final DateTime now = DateTime.now();
@@ -170,178 +170,203 @@ class _AlarmScreenState extends State<AlarmScreen> {
     }
   }
 
+  Future<void> _onAddAlarmPressed() async {
+    await _pickDate();
+    if (!mounted || _selectedDate == null) {
+      return;
+    }
+
+    await _pickTime();
+    if (!mounted || _selectedTime == null) {
+      return;
+    }
+
+    await _saveAlarm();
+  }
+
   @override
   Widget build(BuildContext context) {
     final AlarmProvider alarmProvider = context.watch<AlarmProvider>();
-    final DateFormat dateFormat = DateFormat('EEE, MMM d, yyyy');
-    final DateFormat timeFormat = DateFormat('hh:mm a');
+    final DateFormat dateFormat = DateFormat('EEE d MMM yyyy');
+    final DateFormat timeFormat = DateFormat('h:mm a');
 
     return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text(AppStrings.alarmTitle),
-        elevation: 0,
-        backgroundColor: AppColors.background,
-        foregroundColor: AppColors.textPrimary,
-      ),
+      backgroundColor: const Color(0xFF09002F),
       body: SafeArea(
-        child: LayoutBuilder(
-          builder: (BuildContext context, BoxConstraints constraints) {
-            return SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minHeight: constraints.maxHeight - 32,
+        child: Container(
+          width: double.infinity,
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomCenter,
+              colors: [Color(0xFF0A013C), Color(0xFF0A2C72)],
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(14, 10, 14, 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 12),
+                const Text(
+                  'Selected Location',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 28 / 2,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: AppColors.surface,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: AppColors.border),
+                const SizedBox(height: 10),
+                Container(
+                  height: 45,
+                  decoration: BoxDecoration(
+                    color: const Color(0x6A679233),
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  child: const Row(
+                    children: [
+                      Icon(
+                        Icons.location_on_outlined,
+                        color: Color(0xFFA7A9C4),
+                        size: 18,
                       ),
-                      child: Column(
-                        children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: OutlinedButton.icon(
-                                  onPressed: _pickDate,
-                                  icon: const Icon(
-                                    Icons.calendar_month,
-                                    color: AppColors.primary,
-                                  ),
-                                  label: Text(
-                                    _selectedDate == null
-                                        ? 'Select Date'
-                                        : dateFormat.format(_selectedDate!),
-                                    style: const TextStyle(
-                                      color: AppColors.textPrimary,
-                                    ),
-                                  ),
-                                  style: OutlinedButton.styleFrom(
-                                    side: const BorderSide(
-                                      color: AppColors.border,
-                                    ),
-                                  ),
-                                ),
+                      SizedBox(width: 8),
+                      Text(
+                        'Add your location',
+                        style: TextStyle(
+                          color: Color(0xFFA7A9C4),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Alarms',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 28 / 2,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Expanded(
+                  child: alarmProvider.alarms.isEmpty
+                      ? const SizedBox.shrink()
+                      : ListView.separated(
+                          padding: EdgeInsets.zero,
+                          itemCount: alarmProvider.alarms.length,
+                          separatorBuilder: (context, index) =>
+                              const SizedBox(height: 10),
+                          itemBuilder: (BuildContext context, int index) {
+                            final AlarmModel alarm = alarmProvider.alarms[index];
+                            final bool isEnabled = !_disabledAlarmIds.contains(
+                              alarm.id,
+                            );
+                            return Container(
+                              height: 56,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 8,
                               ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: OutlinedButton.icon(
-                                  onPressed: _pickTime,
-                                  icon: const Icon(
-                                    Icons.access_time,
-                                    color: AppColors.primary,
-                                  ),
-                                  label: Text(
-                                    _selectedTime == null
-                                        ? 'Select Time'
-                                        : _selectedTime!.format(context),
-                                    style: const TextStyle(
-                                      color: AppColors.textPrimary,
-                                    ),
-                                  ),
-                                  style: OutlinedButton.styleFrom(
-                                    side: const BorderSide(
-                                      color: AppColors.border,
-                                    ),
-                                  ),
-                                ),
+                              decoration: BoxDecoration(
+                                color: const Color(0x6A679233),
+                                borderRadius: BorderRadius.circular(26),
                               ),
-                            ],
+                              child: Row(
+                                children: [
+                                  Text(
+                                    timeFormat
+                                        .format(alarm.scheduledAt)
+                                        .toLowerCase(),
+                                    style: const TextStyle(
+                                      color: Color(0xFFE6E7F5),
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                  Text(
+                                    dateFormat.format(alarm.scheduledAt),
+                                    style: const TextStyle(
+                                      color: Color(0xFF9EA2C4),
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w400,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Transform.scale(
+                                    scale: 0.82,
+                                    child: Switch(
+                                      value: isEnabled,
+                                      onChanged: (bool value) {
+                                        setState(() {
+                                          if (value) {
+                                            _disabledAlarmIds.remove(alarm.id);
+                                          } else {
+                                            _disabledAlarmIds.add(alarm.id);
+                                          }
+                                        });
+                                      },
+                                      activeTrackColor: const Color(0xFF7A58FF),
+                                      inactiveTrackColor: const Color(
+                                        0xFF101437,
+                                      ),
+                                      activeThumbColor: Colors.white,
+                                      inactiveThumbColor: Colors.white,
+                                      trackOutlineColor:
+                                          const WidgetStatePropertyAll(
+                                            Colors.transparent,
+                                          ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                ),
+                Align(
+                  alignment: Alignment.bottomRight,
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 8, bottom: 14),
+                    child: GestureDetector(
+                      onTap: _onAddAlarmPressed,
+                      child: Container(
+                        width: 50,
+                        height: 50,
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: LinearGradient(
+                            colors: [Color(0xFF4C00FF), Color(0xFF7817FF)],
                           ),
-                          const SizedBox(height: 16),
-                          PrimaryButton(
-                            label: AppStrings.addAlarm,
-                            onPressed: _saveAlarm,
-                            icon: Icons.alarm_add,
-                          ),
-                        ],
+                        ),
+                        child: const Icon(
+                          Icons.add,
+                          color: Colors.white,
+                          size: 30,
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 20),
-                    const Text(
-                      'Scheduled Alarms',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    if (alarmProvider.alarms.isEmpty)
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(18),
-                        decoration: BoxDecoration(
-                          color: AppColors.surface,
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: AppColors.border),
-                        ),
-                        child: const Text(
-                          AppStrings.noAlarms,
-                          style: TextStyle(color: AppColors.textSecondary),
-                        ),
-                      )
-                    else
-                      ...alarmProvider.alarms.map(
-                        (AlarmModel alarm) => Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: AppColors.surface,
-                              borderRadius: BorderRadius.circular(14),
-                              border: Border.all(color: AppColors.border),
-                            ),
-                            child: ListTile(
-                              leading: const CircleAvatar(
-                                backgroundColor: AppColors.primaryLight,
-                                child: Icon(
-                                  Icons.alarm,
-                                  color: AppColors.surface,
-                                ),
-                              ),
-                              title: Text(
-                                timeFormat.format(alarm.scheduledAt),
-                                style: const TextStyle(
-                                  color: AppColors.textPrimary,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                              subtitle: Text(
-                                dateFormat.format(alarm.scheduledAt),
-                                style: const TextStyle(
-                                  color: AppColors.textSecondary,
-                                ),
-                              ),
-                              trailing: IconButton(
-                                onPressed: () {
-                                  context.read<AlarmProvider>().removeAlarm(
-                                    alarm.id,
-                                  );
-                                },
-                                icon: const Icon(
-                                  Icons.delete_outline,
-                                  color: AppColors.error,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                  ],
+                  ),
                 ),
-              ),
-            );
-          },
+                const SizedBox(height: 6),
+                Center(
+                  child: Container(
+                    width: 74,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
