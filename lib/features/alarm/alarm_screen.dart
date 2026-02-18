@@ -1,29 +1,30 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:onboarding_alarm_app/constants/app_colors.dart';
 import 'package:onboarding_alarm_app/constants/app_strings.dart';
 import 'package:onboarding_alarm_app/features/alarm/alarm_model.dart';
 import 'package:onboarding_alarm_app/features/alarm/alarm_service.dart';
+import 'package:onboarding_alarm_app/features/location/location_screen.dart';
 import 'package:onboarding_alarm_app/helpers/database_helper.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:provider/provider.dart';
 
-class AlarmProvider extends ChangeNotifier {
-  AlarmProvider(this._alarmService, this._dbHelper) {
-    _loadAlarms();
-  }
+class AlarmController extends GetxController {
+  AlarmController(this._alarmService, this._dbHelper);
 
   final AlarmService _alarmService;
   final DatabaseHelper _dbHelper;
-  final List<AlarmModel> _alarms = <AlarmModel>[];
+  final RxList<AlarmModel> alarms = <AlarmModel>[].obs;
 
-  List<AlarmModel> get alarms => List<AlarmModel>.unmodifiable(_alarms);
+  @override
+  void onInit() {
+    super.onInit();
+    _loadAlarms();
+  }
 
   Future<void> _loadAlarms() async {
-    final List<AlarmModel> alarms = await _dbHelper.getAlarms();
-    _alarms.clear();
-    _alarms.addAll(alarms);
-    notifyListeners();
+    final List<AlarmModel> items = await _dbHelper.getAlarms();
+    alarms.assignAll(items);
   }
 
   Future<void> addAlarm(DateTime dateTime) async {
@@ -68,6 +69,7 @@ class AlarmScreen extends StatefulWidget {
 }
 
 class _AlarmScreenState extends State<AlarmScreen> {
+  final AlarmController _alarmController = Get.find<AlarmController>();
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
   final Set<int> _disabledAlarmIds = <int>{};
@@ -147,7 +149,7 @@ class _AlarmScreenState extends State<AlarmScreen> {
     }
 
     try {
-      await context.read<AlarmProvider>().addAlarm(dateTime);
+      await _alarmController.addAlarm(dateTime);
 
       if (!mounted) {
         return;
@@ -186,7 +188,6 @@ class _AlarmScreenState extends State<AlarmScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final AlarmProvider alarmProvider = context.watch<AlarmProvider>();
     final DateFormat dateFormat = DateFormat('EEE d MMM yyyy');
     final DateFormat timeFormat = DateFormat('h:mm a');
 
@@ -212,35 +213,44 @@ class _AlarmScreenState extends State<AlarmScreen> {
                   'Selected Location',
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 28 / 2,
+                    fontSize: 28,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
                 const SizedBox(height: 10),
-                Container(
-                  height: 45,
-                  decoration: BoxDecoration(
-                    color: const Color(0x6A679233),
-                    borderRadius: BorderRadius.circular(24),
-                  ),
-                  padding: const EdgeInsets.symmetric(horizontal: 14),
-                  child: const Row(
-                    children: [
-                      Icon(
-                        Icons.location_on_outlined,
-                        color: Color(0xFFA7A9C4),
-                        size: 18,
+                GestureDetector(
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const LocationScreen(),
                       ),
-                      SizedBox(width: 8),
-                      Text(
-                        'Add your location',
-                        style: TextStyle(
+                    );
+                  },
+                  child: Container(
+                    height: 45,
+                    decoration: BoxDecoration(
+                      color: const Color(0x6A679233),
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    child: const Row(
+                      children: [
+                        Icon(
+                          Icons.location_on_outlined,
                           color: Color(0xFFA7A9C4),
-                          fontSize: 14,
-                          fontWeight: FontWeight.w400,
+                          size: 18,
                         ),
-                      ),
-                    ],
+                        SizedBox(width: 8),
+                        Text(
+                          'Add your location',
+                          style: TextStyle(
+                            color: Color(0xFFA7A9C4),
+                            fontSize: 14,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -248,86 +258,88 @@ class _AlarmScreenState extends State<AlarmScreen> {
                   'Alarms',
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 28 / 2,
+                    fontSize: 28,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
                 const SizedBox(height: 10),
                 Expanded(
-                  child: alarmProvider.alarms.isEmpty
-                      ? const SizedBox.shrink()
-                      : ListView.separated(
-                          padding: EdgeInsets.zero,
-                          itemCount: alarmProvider.alarms.length,
-                          separatorBuilder: (context, index) =>
-                              const SizedBox(height: 10),
-                          itemBuilder: (BuildContext context, int index) {
-                            final AlarmModel alarm = alarmProvider.alarms[index];
-                            final bool isEnabled = !_disabledAlarmIds.contains(
-                              alarm.id,
-                            );
-                            return Container(
-                              height: 56,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 14,
-                                vertical: 8,
+                  child: Obx(() {
+                    if (_alarmController.alarms.isEmpty) {
+                      return const SizedBox.shrink();
+                    }
+
+                    return ListView.separated(
+                      padding: EdgeInsets.zero,
+                      itemCount: _alarmController.alarms.length,
+                      separatorBuilder: (context, index) =>
+                          const SizedBox(height: 10),
+                      itemBuilder: (BuildContext context, int index) {
+                        final AlarmModel alarm = _alarmController.alarms[index];
+                        final bool isEnabled = !_disabledAlarmIds.contains(
+                          alarm.id,
+                        );
+                        return Container(
+                          height: 56,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0x6A679233),
+                            borderRadius: BorderRadius.circular(26),
+                          ),
+                          child: Row(
+                            children: [
+                              Text(
+                                timeFormat
+                                    .format(alarm.scheduledAt)
+                                    .toLowerCase(),
+                                style: const TextStyle(
+                                  color: Color(0xFFE6E7F5),
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
-                              decoration: BoxDecoration(
-                                color: const Color(0x6A679233),
-                                borderRadius: BorderRadius.circular(26),
+                              const Spacer(),
+                              Text(
+                                dateFormat.format(alarm.scheduledAt),
+                                style: const TextStyle(
+                                  color: Color(0xFF9EA2C4),
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w400,
+                                ),
                               ),
-                              child: Row(
-                                children: [
-                                  Text(
-                                    timeFormat
-                                        .format(alarm.scheduledAt)
-                                        .toLowerCase(),
-                                    style: const TextStyle(
-                                      color: Color(0xFFE6E7F5),
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                  const Spacer(),
-                                  Text(
-                                    dateFormat.format(alarm.scheduledAt),
-                                    style: const TextStyle(
-                                      color: Color(0xFF9EA2C4),
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w400,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Transform.scale(
-                                    scale: 0.82,
-                                    child: Switch(
-                                      value: isEnabled,
-                                      onChanged: (bool value) {
-                                        setState(() {
-                                          if (value) {
-                                            _disabledAlarmIds.remove(alarm.id);
-                                          } else {
-                                            _disabledAlarmIds.add(alarm.id);
-                                          }
-                                        });
-                                      },
-                                      activeTrackColor: const Color(0xFF7A58FF),
-                                      inactiveTrackColor: const Color(
-                                        0xFF101437,
+                              const SizedBox(width: 8),
+                              Transform.scale(
+                                scale: 0.82,
+                                child: Switch(
+                                  value: isEnabled,
+                                  onChanged: (bool value) {
+                                    setState(() {
+                                      if (value) {
+                                        _disabledAlarmIds.remove(alarm.id);
+                                      } else {
+                                        _disabledAlarmIds.add(alarm.id);
+                                      }
+                                    });
+                                  },
+                                  activeTrackColor: const Color(0xFF7A58FF),
+                                  inactiveTrackColor: const Color(0xFF101437),
+                                  activeThumbColor: Colors.white,
+                                  inactiveThumbColor: Colors.white,
+                                  trackOutlineColor:
+                                      const WidgetStatePropertyAll(
+                                        Colors.transparent,
                                       ),
-                                      activeThumbColor: Colors.white,
-                                      inactiveThumbColor: Colors.white,
-                                      trackOutlineColor:
-                                          const WidgetStatePropertyAll(
-                                            Colors.transparent,
-                                          ),
-                                    ),
-                                  ),
-                                ],
+                                ),
                               ),
-                            );
-                          },
-                        ),
+                            ],
+                          ),
+                        );
+                      },
+                    );
+                  }),
                 ),
                 Align(
                   alignment: Alignment.bottomRight,
@@ -340,9 +352,7 @@ class _AlarmScreenState extends State<AlarmScreen> {
                         height: 50,
                         decoration: const BoxDecoration(
                           shape: BoxShape.circle,
-                          gradient: LinearGradient(
-                            colors: [Color(0xFF4C00FF), Color(0xFF7817FF)],
-                          ),
+                          color: Color(0xFF5A00FF),
                         ),
                         child: const Icon(
                           Icons.add,

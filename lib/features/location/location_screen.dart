@@ -109,11 +109,11 @@ class _LocationScreenState extends State<LocationScreen> {
               children: [
                 const SizedBox(height: 6),
                 const Text(
-                  'Welcome! Your Smart\nTravel Alarm',
+                  'Welcome! Your Smart Travel Alarm',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 38 / 2,
+                    fontSize: 38,
                     fontWeight: FontWeight.w700,
                     height: 1.25,
                     letterSpacing: 0.1,
@@ -121,21 +121,21 @@ class _LocationScreenState extends State<LocationScreen> {
                 ),
                 const SizedBox(height: 12),
                 const Text(
-                  'Stay on schedule and enjoy every\nmoment of your journey.',
+                  'Stay on schedule and enjoy every moment of your journey.',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: Color(0xFFE5E7F8),
-                    fontSize: 22 / 2,
+                    fontSize: 22,
                     height: 1.55,
                     fontWeight: FontWeight.w400,
                   ),
                 ),
-                const SizedBox(height: 30),
+                const SizedBox(height: 100),
                 ClipRRect(
                   borderRadius: BorderRadius.circular(2),
                   child: SizedBox(
                     width: double.infinity,
-                    height: 180,
+                    height: 300,
                     child: Image.network(
                       'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=80',
                       fit: BoxFit.cover,
@@ -234,12 +234,7 @@ class _ActionButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(28),
           child: Ink(
             decoration: BoxDecoration(
-              gradient: isPrimary
-                  ? const LinearGradient(
-                      colors: [Color(0xFF4C00FF), Color(0xFF7817FF)],
-                    )
-                  : null,
-              color: isPrimary ? null : Colors.transparent,
+              color: isPrimary ? const Color(0xFF5A00FF) : Colors.transparent,
               borderRadius: BorderRadius.circular(28),
               border: isPrimary
                   ? null

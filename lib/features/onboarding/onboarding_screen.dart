@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:onboarding_alarm_app/common_widgets/onboarding_page.dart';
-import 'package:onboarding_alarm_app/common_widgets/primary_button.dart';
-import 'package:onboarding_alarm_app/constants/app_colors.dart';
 import 'package:onboarding_alarm_app/constants/app_strings.dart';
 import 'package:onboarding_alarm_app/features/location/location_screen.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -17,6 +14,29 @@ class OnboardingScreen extends StatefulWidget {
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
   static const String _onboardingKey = 'onboarding_completed';
+  static const List<_OnboardingSlide> _slides = <_OnboardingSlide>[
+    _OnboardingSlide(
+      imageUrl:
+          'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=1200&q=80',
+      title: 'Discover the world, one journey at a time.',
+      description:
+          'From hidden gems to iconic destinations, we make travel simple, inspiring, and unforgettable. Start your next adventure today.',
+    ),
+    _OnboardingSlide(
+      imageUrl:
+          'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80',
+      title: 'Explore new horizons, one step at a time.',
+      description:
+          'Every trip holds a story waiting to be lived. Let us guide you to experiences that inspire, connect, and last a lifetime.',
+    ),
+    _OnboardingSlide(
+      imageUrl:
+          'https://images.unsplash.com/photo-1473116763249-2faaef81ccda?auto=format&fit=crop&w=1200&q=80',
+      title: 'See the beauty, one journey at a time.',
+      description:
+          'Travel made simple and exciting-discover places you\'ll love and moments you\'ll never forget.',
+    ),
+  ];
 
   final PageController _pageController = PageController();
   int _currentPage = 0;
@@ -64,92 +84,175 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final List<Widget> pages = <Widget>[
-      const OnboardingPage(
-        title: AppStrings.onboardingTitle1,
-        description: AppStrings.onboardingDesc1,
-        icon: Icons.mobile_friendly_outlined,
-      ),
-      const OnboardingPage(
-        title: AppStrings.onboardingTitle2,
-        description: AppStrings.onboardingDesc2,
-        icon: Icons.location_on_outlined,
-      ),
-      const OnboardingPage(
-        title: AppStrings.onboardingTitle3,
-        description: AppStrings.onboardingDesc3,
-        icon: Icons.alarm_outlined,
-      ),
-    ];
-
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: const Color(0xFF09002F),
       body: SafeArea(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton(
-                    onPressed: _completeOnboarding,
-                    child: const Text(
-                      AppStrings.skip,
-                      style: TextStyle(
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+        top: false,
+        child: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: <Color>[Color(0xFF09002F), Color(0xFF0A2C72)],
             ),
-            Expanded(
-              child: PageView(
-                controller: _pageController,
-                onPageChanged: (int index) {
-                  setState(() => _currentPage = index);
-                },
-                children: pages,
+          ),
+          child: Column(
+            children: <Widget>[
+              Expanded(
+                child: PageView.builder(
+                  controller: _pageController,
+                  itemCount: _slides.length,
+                  onPageChanged: (int index) {
+                    setState(() => _currentPage = index);
+                  },
+                  itemBuilder: (BuildContext context, int index) {
+                    final _OnboardingSlide slide = _slides[index];
+                    return Column(
+                      children: <Widget>[
+                        Expanded(
+                          flex: 70,
+                          child: Stack(
+                            children: <Widget>[
+                              ClipRRect(
+                                borderRadius: const BorderRadius.vertical(
+                                  bottom: Radius.circular(32),
+                                ),
+                                child: SizedBox.expand(
+                                  child: Image.network(
+                                    slide.imageUrl,
+                                    fit: BoxFit.cover,
+                                    errorBuilder:
+                                        (context, error, stackTrace) =>
+                                            Container(
+                                              color: const Color(0xFF1B2F61),
+                                            ),
+                                  ),
+                                ),
+                              ),
+                              Positioned(
+                                right: 14,
+                                top: MediaQuery.of(context).padding.top + 8,
+                                child: TextButton(
+                                  onPressed: _completeOnboarding,
+                                  style: TextButton.styleFrom(
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 6,
+                                    ),
+                                  ),
+                                  child: const Text(
+                                    AppStrings.skip,
+                                    style: TextStyle(
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        SizedBox(height: 10),
+                        Expanded(
+                          flex: 30,
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 20, 16, 12),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: <Widget>[
+                                Text(
+                                  slide.title,
+                                  style: const TextStyle(
+                                    color: Color(0xFFF1F2FF),
+                                    fontSize: 40,
+                                    fontWeight: FontWeight.w600,
+                                    height: 1.2,
+                                  ),
+                                ),
+                                const SizedBox(height: 20),
+                                Text(
+                                  slide.description,
+                                  style: const TextStyle(
+                                    color: Color(0xFFCDD0EC),
+                                    fontSize: 20,
+                                    height: 1.45,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: List<Widget>.generate(
-                      pages.length,
-                      (int index) => AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        margin: const EdgeInsets.symmetric(horizontal: 4),
-                        height: 8,
-                        width: _currentPage == index ? 24 : 8,
-                        decoration: BoxDecoration(
-                          color: _currentPage == index
-                              ? AppColors.primary
-                              : AppColors.border,
-                          borderRadius: BorderRadius.circular(8),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 10, 16, 20),
+                child: Column(
+                  children: <Widget>[
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List<Widget>.generate(
+                        _slides.length,
+                        (int index) => Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 4),
+                          width: 6,
+                          height: 6,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: _currentPage == index
+                                ? const Color(0xFF5A1BFF)
+                                : const Color(0xFF3A4A94),
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 20),
-                  PrimaryButton(
-                    label: _currentPage == pages.length - 1
-                        ? AppStrings.getStarted
-                        : AppStrings.next,
-                    onPressed: _onNextPressed,
-                    icon: Icons.arrow_forward,
-                  ),
-                ],
+                    const SizedBox(height: 18),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 52,
+                      child: ElevatedButton(
+                        onPressed: _onNextPressed,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF5A00FF),
+                          foregroundColor: Colors.white,
+                          shadowColor: Colors.transparent,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(28),
+                          ),
+                        ),
+                        child: Text(
+                          _currentPage == _slides.length - 1
+                              ? AppStrings.getStarted
+                              : AppStrings.next,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
+}
+
+class _OnboardingSlide {
+  const _OnboardingSlide({
+    required this.imageUrl,
+    required this.title,
+    required this.description,
+  });
+
+  final String imageUrl;
+  final String title;
+  final String description;
 }
