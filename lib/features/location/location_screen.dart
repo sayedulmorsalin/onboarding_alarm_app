@@ -102,6 +102,9 @@ class _LocationScreenState extends State<LocationScreen> {
     final double subtitleSize = (screenSize.width * 0.045).clamp(14.0, 18.0);
     final double topImageGap = (screenSize.height * 0.05).clamp(24.0, 80.0);
     final double imageHeight = (screenSize.height * 0.30).clamp(190.0, 320.0);
+    final String locationButtonLabel = _position == null
+        ? 'Use Current Location'
+        : '${_position!.latitude.toStringAsFixed(5)}, ${_position!.longitude.toStringAsFixed(5)}';
 
     return Scaffold(
       backgroundColor: const Color(0xFF09002F),
@@ -142,7 +145,7 @@ class _LocationScreenState extends State<LocationScreen> {
                     fontWeight: FontWeight.w400,
                   ),
                 ),
-                SizedBox(height: topImageGap),
+                SizedBox(height: 100),
                 ClipRRect(
                   borderRadius: BorderRadius.circular(2),
                   child: SizedBox(
@@ -165,18 +168,6 @@ class _LocationScreenState extends State<LocationScreen> {
                     ),
                   ),
                 ),
-                if (_position != null) ...[
-                  const SizedBox(height: 12),
-                  Text(
-                    'Selected Location: ${_position!.latitude.toStringAsFixed(5)}, ${_position!.longitude.toStringAsFixed(5)}',
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: Color(0xFFCDD0EC),
-                      fontSize: 20,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
                 const Spacer(),
                 if (_errorText != null) ...[
                   Padding(
@@ -211,7 +202,7 @@ class _LocationScreenState extends State<LocationScreen> {
                 _ActionButton(
                   label: _isLoading
                       ? 'Getting Location...'
-                      : 'Use Current Location',
+                      : locationButtonLabel,
                   icon: Icons.my_location_outlined,
                   isPrimary: false,
                   onPressed: _isLoading ? null : _requestLocation,
