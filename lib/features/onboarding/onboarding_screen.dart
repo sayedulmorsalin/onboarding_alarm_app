@@ -18,23 +18,20 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     _OnboardingSlide(
       imageUrl:
           'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=1200&q=80',
-      title: 'Discover the world, one journey at a time.',
-      description:
-          'From hidden gems to iconic destinations, we make travel simple, inspiring, and unforgettable. Start your next adventure today.',
+      title: AppStrings.onboardingTitle1,
+      description: AppStrings.onboardingDesc1,
     ),
     _OnboardingSlide(
       imageUrl:
           'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80',
-      title: 'Explore new horizons, one step at a time.',
-      description:
-          'Every trip holds a story waiting to be lived. Let us guide you to experiences that inspire, connect, and last a lifetime.',
+      title: AppStrings.onboardingTitle2,
+      description: AppStrings.onboardingDesc2,
     ),
     _OnboardingSlide(
       imageUrl:
           'https://images.unsplash.com/photo-1473116763249-2faaef81ccda?auto=format&fit=crop&w=1200&q=80',
-      title: 'See the beauty, one journey at a time.',
-      description:
-          'Travel made simple and exciting-discover places you\'ll love and moments you\'ll never forget.',
+      title: AppStrings.onboardingTitle3,
+      description: AppStrings.onboardingDesc3,
     ),
   ];
 
@@ -84,6 +81,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final Size screenSize = MediaQuery.of(context).size;
+    final double titleSize = (screenSize.width * 0.072).clamp(24.0, 32.0);
+    final double descriptionSize = (screenSize.width * 0.042).clamp(14.0, 17.0);
+
     return Scaffold(
       backgroundColor: const Color(0xFF09002F),
       body: SafeArea(
@@ -163,9 +164,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               children: <Widget>[
                                 Text(
                                   slide.title,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     color: Color(0xFFF1F2FF),
-                                    fontSize: 40,
+                                    fontSize: titleSize,
                                     fontWeight: FontWeight.w600,
                                     height: 1.2,
                                   ),
@@ -173,9 +174,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                 const SizedBox(height: 20),
                                 Text(
                                   slide.description,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     color: Color(0xFFCDD0EC),
-                                    fontSize: 20,
+                                    fontSize: descriptionSize,
                                     height: 1.45,
                                   ),
                                 ),

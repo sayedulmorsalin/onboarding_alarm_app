@@ -5,6 +5,7 @@ import 'package:onboarding_alarm_app/constants/app_colors.dart';
 import 'package:onboarding_alarm_app/constants/app_strings.dart';
 import 'package:onboarding_alarm_app/features/alarm/alarm_screen.dart';
 import 'package:onboarding_alarm_app/features/alarm/alarm_service.dart';
+import 'package:onboarding_alarm_app/features/location/location_controller.dart';
 import 'package:onboarding_alarm_app/features/location/location_screen.dart';
 import 'package:onboarding_alarm_app/features/onboarding/onboarding_screen.dart';
 import 'package:onboarding_alarm_app/helpers/database_helper.dart';
@@ -42,6 +43,9 @@ class MyApp extends StatelessWidget {
         AlarmController(AlarmService.instance, DatabaseHelper.instance),
         permanent: true,
       );
+    }
+    if (!Get.isRegistered<LocationController>()) {
+      Get.put<LocationController>(LocationController(), permanent: true);
     }
 
     return GetMaterialApp(

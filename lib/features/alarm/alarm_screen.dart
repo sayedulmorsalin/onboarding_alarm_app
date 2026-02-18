@@ -5,6 +5,7 @@ import 'package:onboarding_alarm_app/constants/app_colors.dart';
 import 'package:onboarding_alarm_app/constants/app_strings.dart';
 import 'package:onboarding_alarm_app/features/alarm/alarm_model.dart';
 import 'package:onboarding_alarm_app/features/alarm/alarm_service.dart';
+import 'package:onboarding_alarm_app/features/location/location_controller.dart';
 import 'package:onboarding_alarm_app/features/location/location_screen.dart';
 import 'package:onboarding_alarm_app/helpers/database_helper.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -70,6 +71,7 @@ class AlarmScreen extends StatefulWidget {
 
 class _AlarmScreenState extends State<AlarmScreen> {
   final AlarmController _alarmController = Get.find<AlarmController>();
+  final LocationController _locationController = Get.find<LocationController>();
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
   final Set<int> _disabledAlarmIds = <int>{};
@@ -233,20 +235,26 @@ class _AlarmScreenState extends State<AlarmScreen> {
                       borderRadius: BorderRadius.circular(24),
                     ),
                     padding: const EdgeInsets.symmetric(horizontal: 14),
-                    child: const Row(
+                    child: Row(
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.location_on_outlined,
                           color: Color(0xFFA7A9C4),
                           size: 18,
                         ),
-                        SizedBox(width: 8),
-                        Text(
-                          'Add your location',
-                          style: TextStyle(
-                            color: Color(0xFFA7A9C4),
-                            fontSize: 14,
-                            fontWeight: FontWeight.w400,
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Obx(
+                            () => Text(
+                              _locationController.displayLocation,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: Color(0xFFA7A9C4),
+                                fontSize: 14,
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
                           ),
                         ),
                       ],

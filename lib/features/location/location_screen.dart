@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:get/get.dart';
 import 'package:onboarding_alarm_app/features/alarm/alarm_screen.dart';
+import 'package:onboarding_alarm_app/features/location/location_controller.dart';
 import 'package:onboarding_alarm_app/features/location/location_service.dart';
 
 class LocationScreen extends StatefulWidget {
@@ -12,7 +14,9 @@ class LocationScreen extends StatefulWidget {
 
 class _LocationScreenState extends State<LocationScreen> {
   final LocationService _locationService = LocationService();
+  final LocationController _locationController = Get.find<LocationController>();
 
+  Position? _position;
   String? _errorText;
   bool _isLoading = false;
   bool _canContinue = false;
@@ -38,15 +42,17 @@ class _LocationScreenState extends State<LocationScreen> {
     });
 
     try {
-      await _locationService.getCurrentPosition();
+      final Position position = await _locationService.getCurrentPosition();
 
       if (!mounted) {
         return;
       }
 
       setState(() {
+        _position = position;
         _canContinue = true;
       });
+      _locationController.setPosition(position);
     } on LocationPermissionDeniedException {
       setState(() {
         _errorText = 'Location permission denied. Allow access to continue.';
@@ -91,6 +97,12 @@ class _LocationScreenState extends State<LocationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final Size screenSize = MediaQuery.of(context).size;
+    final double titleSize = (screenSize.width * 0.085).clamp(26.0, 34.0);
+    final double subtitleSize = (screenSize.width * 0.045).clamp(14.0, 18.0);
+    final double topImageGap = (screenSize.height * 0.05).clamp(24.0, 80.0);
+    final double imageHeight = (screenSize.height * 0.30).clamp(190.0, 320.0);
+
     return Scaffold(
       backgroundColor: const Color(0xFF09002F),
       body: SafeArea(
@@ -108,34 +120,34 @@ class _LocationScreenState extends State<LocationScreen> {
             child: Column(
               children: [
                 const SizedBox(height: 6),
-                const Text(
+                Text(
                   'Welcome! Your Smart Travel Alarm',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 38,
+                    fontSize: titleSize,
                     fontWeight: FontWeight.w700,
                     height: 1.25,
                     letterSpacing: 0.1,
                   ),
                 ),
                 const SizedBox(height: 12),
-                const Text(
+                Text(
                   'Stay on schedule and enjoy every moment of your journey.',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: Color(0xFFE5E7F8),
-                    fontSize: 22,
+                    fontSize: subtitleSize,
                     height: 1.55,
                     fontWeight: FontWeight.w400,
                   ),
                 ),
-                const SizedBox(height: 100),
+                SizedBox(height: topImageGap),
                 ClipRRect(
                   borderRadius: BorderRadius.circular(2),
                   child: SizedBox(
                     width: double.infinity,
-                    height: 300,
+                    height: imageHeight,
                     child: Image.network(
                       'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=80',
                       fit: BoxFit.cover,
@@ -153,6 +165,18 @@ class _LocationScreenState extends State<LocationScreen> {
                     ),
                   ),
                 ),
+                if (_position != null) ...[
+                  const SizedBox(height: 12),
+                  Text(
+                    'Selected Location: ${_position!.latitude.toStringAsFixed(5)}, ${_position!.longitude.toStringAsFixed(5)}',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: Color(0xFFCDD0EC),
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
                 const Spacer(),
                 if (_errorText != null) ...[
                   Padding(
